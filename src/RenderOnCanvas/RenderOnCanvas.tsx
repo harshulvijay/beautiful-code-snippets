@@ -1,7 +1,7 @@
 import {useEffect, useRef} from 'preact/hooks';
 import type {VNode} from 'preact';
 import render from 'preact-render-to-string';
-import './RenderOnCanvas.css'
+import styled from 'styled-components';
 
 /**
  * Renders all the children passed to it as an image on a canvas.
@@ -107,7 +107,11 @@ export function RenderOnCanvas({
   return (
     <>
       {/* pass all the other props to the canvas */}
-      <canvas ref={canvasRef} {...props} />
+      <Canvas ref={canvasRef} {...props} />
     </>
   );
 }
+
+const Canvas = styled.canvas`
+  background: white;
+`;
