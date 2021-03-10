@@ -5,8 +5,27 @@ import './RenderOnCanvas.css'
 
 /**
  * Renders all the children passed to it as an image on a canvas.
+ *
+ * @param {VNode} children the children of this element
+ * @param {number} height height of.. basically everything here
+ * @param {number} width width of.. basically everything here
+ * @param {any[]} props the rest of the props
  */
-export function RenderOnCanvas({children}: {children: VNode}) {
+export function RenderOnCanvas({
+  children,
+  width = 150,
+  height = 150,
+  ...props
+}: {
+  // for all the other props
+  [key: string]: any;
+
+  // `children` **needs** to be of type `VNode` so that we don't get bad red
+  // squiggles while retrieving the html markup using `preact-render-to-string`
+  children: VNode;
+  width?: number;
+  height?: number;
+}) {
   // a ref for our canvas
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -26,11 +45,11 @@ export function RenderOnCanvas({children}: {children: VNode}) {
       ];
 
       const svgMarkup = [
-        `<svg:svg ${namespaces.join(` `)} height="500" width="500">`,
+        `<svg:svg ${namespaces.join(` `)} height="${height}" width="${width}">`,
         // use `foreignObject` from the `svg` namespace
         // it allows us to use html inside svg, which can then be rendered on a
         // canvas
-        `<svg:foreignObject height="500" width="500">`,
+        `<svg:foreignObject height="${height}" width="${width}">`,
         // our html markup goes here
         htmlMarkup,
         `</svg:foreignObject>`,
@@ -49,14 +68,14 @@ export function RenderOnCanvas({children}: {children: VNode}) {
       function setCanvasBgColor(color: string) {
         if (context) {
           context.fillStyle = color;
-          context.fillRect(0, 0, 500, 500);
+          context.fillRect(0, 0, width, height);
         }
       }
 
       function clearCanvas() {
         if (context) {
           // clear the canvas
-          context.clearRect(0, 0, 500, 500);
+          context.clearRect(0, 0, width, height);
           // set the background color of the canvas to white
           setCanvasBgColor('white');
         }
@@ -87,7 +106,8 @@ export function RenderOnCanvas({children}: {children: VNode}) {
 
   return (
     <>
-      <canvas ref={canvasRef} />
+      {/* pass all the other props to the canvas */}
+      <canvas ref={canvasRef} {...props} />
     </>
   );
 }
