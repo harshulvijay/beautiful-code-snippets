@@ -8,10 +8,13 @@
   },
   "dependencies": {
     "preact": "^10.5.9",
-    "preact-render-to-string": "^5.1.14"
+    "preact-render-to-string": "^5.1.14",
+    "react-is": "^17.0.1",
+    "styled-components": "^5.2.1"
   },
   "devDependencies": {
     "@prefresh/vite": "^2.0.0",
+    "@types/styled-components": "^5.1.7",
     "vite": "^2.0.5"
   }
 }
