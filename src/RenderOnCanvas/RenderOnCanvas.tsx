@@ -1,6 +1,7 @@
 import {useEffect, useRef} from 'preact/hooks';
 import type {VNode} from 'preact';
 import render from 'preact-render-to-string';
+import './RenderOnCanvas.css'
 
 /**
  * Renders all the children passed to it as an image on a canvas.
@@ -86,14 +87,7 @@ export function RenderOnCanvas({children}: {children: VNode}) {
 
   return (
     <>
-      <canvas
-        style={{
-          background: 'white',
-        }}
-        ref={canvasRef}
-        height="500"
-        width="500"
-      />
+      <canvas ref={canvasRef} />
     </>
   );
 }
