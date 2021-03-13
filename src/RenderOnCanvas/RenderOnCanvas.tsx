@@ -3,6 +3,12 @@ import type {VNode} from 'preact';
 import render from 'preact-render-to-string';
 import styled from 'styled-components';
 
+// ---------------- constants ----------------
+
+// default height and width in case one isn't specified
+const defaultHeight = 150;
+const defaultWidth = 150;
+
 // ----------------   hooks   ----------------
 
 /**
@@ -14,7 +20,7 @@ import styled from 'styled-components';
  */
 function useSVGForeignObject(
   htmlMarkup: string,
-  [width, height]: [number, number] = [150, 150],
+  [width, height]: [number, number] = [defaultWidth, defaultHeight],
 ): string {
   // -------- generating the svg markup from the given html markup --------
   // **note**: the xml namespaces must **not** be switched for simplicity
@@ -51,8 +57,8 @@ function useSVGForeignObject(
  */
 export function RenderOnCanvas({
   children,
-  width = 150,
-  height = 150,
+  width = defaultWidth,
+  height = defaultHeight,
   ...props
 }: {
   // for all the other props
