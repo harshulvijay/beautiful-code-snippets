@@ -65,6 +65,47 @@ function useSvgAsImageSrc(svgMarkup: string): HTMLImageElement {
   return image;
 }
 
+// ------------- other functions -------------
+
+interface CanvasOptions {
+  /**
+   * 2D context of the canvas
+   */
+  context: CanvasRenderingContext2D;
+  height: number;
+  width: number;
+}
+
+/**
+ * Paints the canvas with the given background color
+ * 
+ * @param {CanvasOptions} options canvas options
+ * @param {string} color the color to use
+ */
+function setCanvasBgColor(
+  {context, width, height}: CanvasOptions,
+  color: string,
+) {
+  if (context) {
+    context.fillStyle = color;
+    context.fillRect(0, 0, width, height);
+  }
+}
+
+/**
+ * Clears the canvas
+ *
+ * @param {CanvasOptions} options canvas options
+ */
+function clearCanvas({context, width, height}: CanvasOptions) {
+  if (context) {
+    // clear the canvas
+    context.clearRect(0, 0, width, height);
+    // set the background color of the canvas to white
+    setCanvasBgColor({context, width, height}, 'white');
+  }
+}
+
 // ---------------- component ----------------
 
 /**
@@ -104,34 +145,20 @@ export function RenderOnCanvas({
       // get canvas context
       const context = canvas.getContext('2d');
 
-      function setCanvasBgColor(color: string) {
-        if (context) {
-          context.fillStyle = color;
-          context.fillRect(0, 0, width, height);
-        }
-      }
-
-      function clearCanvas() {
-        if (context) {
-          // clear the canvas
-          context.clearRect(0, 0, width, height);
-          // set the background color of the canvas to white
-          setCanvasBgColor('white');
-        }
-      }
-
       // render the svg markup on the canvas when the image has loaded
       image.onload = async () => {
         if (context) {
           // clear the canvas
-          clearCanvas();
+          clearCanvas({context, width, height});
           context.drawImage(image, 0, 0);
         }
       };
 
       return function cleanup() {
-        // since the component has been unmounted/remounted, clear the canvas
-        clearCanvas();
+        if (context) {
+          // since the component has been unmounted/remounted, clear the canvas
+          clearCanvas({context, width, height});
+        }
       };
     }
   }, [children]); // re-render if children change
