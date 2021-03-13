@@ -58,10 +58,10 @@ export function RenderOnCanvas({
 
       // -------- creating an image from the svg markup --------
       let image = new Image();
-      const imageBlob = new Blob([svgMarkup], {
-        type: `image/svg+xml;charset=utf-8`,
-      });
-      const imageSrc = URL.createObjectURL(imageBlob);
+      // encode the svg markup to base64
+      const base64SvgMarkup = btoa(svgMarkup);
+      // the image src
+      const imageSrc = `data:image/svg+xml;base64,${base64SvgMarkup}`;
       // get canvas context
       const context = canvas.getContext('2d');
 
@@ -87,9 +87,6 @@ export function RenderOnCanvas({
           // clear the canvas
           clearCanvas();
           context.drawImage(image, 0, 0);
-
-          // revoke the image url
-          URL.revokeObjectURL(imageSrc);
         }
       };
 
@@ -98,8 +95,6 @@ export function RenderOnCanvas({
       return function cleanup() {
         // since the component has been unmounted/remounted, clear the canvas
         clearCanvas();
-        // revoke the image url
-        URL.revokeObjectURL(imageSrc);
       };
     }
   }, [children]); // re-render if children change
