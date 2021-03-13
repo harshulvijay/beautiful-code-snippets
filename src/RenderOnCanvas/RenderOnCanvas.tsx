@@ -3,6 +3,111 @@ import type {VNode} from 'preact';
 import render from 'preact-render-to-string';
 import styled from 'styled-components';
 
+// ---------------- constants ----------------
+
+// default height and width in case one isn't specified
+const defaultHeight = 150;
+const defaultWidth = 150;
+
+// ----------------   hooks   ----------------
+
+/**
+ * Generates SVG markup using the given HTML markup
+ *
+ * @param {string} htmlMarkup the html markup to wrap in svg `foreignObject`
+ * @param {[number, number]} dimensions [height, width]
+ * @returns {string} SVG markup
+ */
+function useSvgForeignObject(
+  htmlMarkup: string,
+  [width, height]: [number, number] = [defaultWidth, defaultHeight],
+): string {
+  // -------- generating the svg markup from the given html markup --------
+  // **note**: the xml namespaces must **not** be switched for simplicity
+  // ie, the **main** xmlns should be xhtml and not svg
+  const namespaces = [
+    `xmlns="http://www.w3.org/1999/xhtml"`,
+    `xmlns:svg="http://www.w3.org/2000/svg"`,
+  ];
+
+  const svgMarkup = [
+    `<svg:svg ${namespaces.join(` `)} height="${height}" width="${width}">`,
+    // use `foreignObject` from the `svg` namespace
+    // it allows us to use html inside svg, which can then be rendered on a
+    // canvas
+    `<svg:foreignObject height="${height}" width="${width}">`,
+    // our html markup goes here
+    htmlMarkup,
+    `</svg:foreignObject>`,
+    `</svg:svg>`,
+  ].join(``);
+
+  return svgMarkup;
+}
+
+/**
+ * Creates an `HTMLImageElement` with `src` as an inline, Base64-encoded SVG
+ * string
+ *
+ * @param {string} svgMarkup the svg markup to use
+ * @returns {HTMLImageElement} the generated `HTMLImageElement` object
+ */
+function useSvgAsImageSrc(svgMarkup: string): HTMLImageElement {
+  // -------- creating an image from the svg markup --------
+  const image = new Image();
+  // encode the svg markup to base64
+  const base64SvgMarkup = btoa(svgMarkup);
+  // the image src
+  const imageSrc = `data:image/svg+xml;base64,${base64SvgMarkup}`;
+
+  image.src = imageSrc;
+
+  return image;
+}
+
+// ------------- other functions -------------
+
+interface CanvasOptions {
+  /**
+   * 2D context of the canvas
+   */
+  context: CanvasRenderingContext2D;
+  height: number;
+  width: number;
+}
+
+/**
+ * Paints the canvas with the given background color
+ * 
+ * @param {CanvasOptions} options canvas options
+ * @param {string} color the color to use
+ */
+function setCanvasBgColor(
+  {context, width, height}: CanvasOptions,
+  color: string,
+) {
+  if (context) {
+    context.fillStyle = color;
+    context.fillRect(0, 0, width, height);
+  }
+}
+
+/**
+ * Clears the canvas
+ *
+ * @param {CanvasOptions} options canvas options
+ */
+function clearCanvas({context, width, height}: CanvasOptions) {
+  if (context) {
+    // clear the canvas
+    context.clearRect(0, 0, width, height);
+    // set the background color of the canvas to white
+    setCanvasBgColor({context, width, height}, 'white');
+  }
+}
+
+// ---------------- component ----------------
+
 /**
  * Renders all the children passed to it as an image on a canvas.
  *
@@ -13,8 +118,8 @@ import styled from 'styled-components';
  */
 export function RenderOnCanvas({
   children,
-  width = 150,
-  height = 150,
+  width = defaultWidth,
+  height = defaultHeight,
   ...props
 }: {
   // for all the other props
@@ -35,66 +140,25 @@ export function RenderOnCanvas({
     if (canvas) {
       // getting the final html markup of all the children when rendered
       const htmlMarkup = render(children);
-
-      // -------- generating the svg markup from the given html markup --------
-      // **note**: the xml namespaces must **not** be switched for simplicity
-      // ie, the **main** xmlns should be xhtml and not svg
-      const namespaces = [
-        `xmlns="http://www.w3.org/1999/xhtml"`,
-        `xmlns:svg="http://www.w3.org/2000/svg"`,
-      ];
-
-      const svgMarkup = [
-        `<svg:svg ${namespaces.join(` `)} height="${height}" width="${width}">`,
-        // use `foreignObject` from the `svg` namespace
-        // it allows us to use html inside svg, which can then be rendered on a
-        // canvas
-        `<svg:foreignObject height="${height}" width="${width}">`,
-        // our html markup goes here
-        htmlMarkup,
-        `</svg:foreignObject>`,
-        `</svg:svg>`,
-      ].join(``);
-
-      // -------- creating an image from the svg markup --------
-      let image = new Image();
-      // encode the svg markup to base64
-      const base64SvgMarkup = btoa(svgMarkup);
-      // the image src
-      const imageSrc = `data:image/svg+xml;base64,${base64SvgMarkup}`;
+      const svgMarkup = useSvgForeignObject(htmlMarkup, [width, height]);
+      const image = useSvgAsImageSrc(svgMarkup);
       // get canvas context
       const context = canvas.getContext('2d');
-
-      function setCanvasBgColor(color: string) {
-        if (context) {
-          context.fillStyle = color;
-          context.fillRect(0, 0, width, height);
-        }
-      }
-
-      function clearCanvas() {
-        if (context) {
-          // clear the canvas
-          context.clearRect(0, 0, width, height);
-          // set the background color of the canvas to white
-          setCanvasBgColor('white');
-        }
-      }
 
       // render the svg markup on the canvas when the image has loaded
       image.onload = async () => {
         if (context) {
           // clear the canvas
-          clearCanvas();
+          clearCanvas({context, width, height});
           context.drawImage(image, 0, 0);
         }
       };
 
-      image.src = imageSrc;
-
       return function cleanup() {
-        // since the component has been unmounted/remounted, clear the canvas
-        clearCanvas();
+        if (context) {
+          // since the component has been unmounted/remounted, clear the canvas
+          clearCanvas({context, width, height});
+        }
       };
     }
   }, [children]); // re-render if children change
@@ -106,6 +170,8 @@ export function RenderOnCanvas({
     </>
   );
 }
+
+// ----------------  styling  ----------------
 
 const Canvas = styled.canvas`
   background: white;
