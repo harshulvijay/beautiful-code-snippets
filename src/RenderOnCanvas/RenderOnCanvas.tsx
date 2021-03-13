@@ -3,6 +3,44 @@ import type {VNode} from 'preact';
 import render from 'preact-render-to-string';
 import styled from 'styled-components';
 
+// ----------------   hooks   ----------------
+
+/**
+ * Generates SVG markup using the given HTML markup
+ *
+ * @param {string} htmlMarkup the html markup to wrap in svg `foreignObject`
+ * @param {[number, number]} dimensions [height, width]
+ * @returns {string} SVG markup
+ */
+function useSVGForeignObject(
+  htmlMarkup: string,
+  [width, height]: [number, number] = [150, 150],
+): string {
+  // -------- generating the svg markup from the given html markup --------
+  // **note**: the xml namespaces must **not** be switched for simplicity
+  // ie, the **main** xmlns should be xhtml and not svg
+  const namespaces = [
+    `xmlns="http://www.w3.org/1999/xhtml"`,
+    `xmlns:svg="http://www.w3.org/2000/svg"`,
+  ];
+
+  const svgMarkup = [
+    `<svg:svg ${namespaces.join(` `)} height="${height}" width="${width}">`,
+    // use `foreignObject` from the `svg` namespace
+    // it allows us to use html inside svg, which can then be rendered on a
+    // canvas
+    `<svg:foreignObject height="${height}" width="${width}">`,
+    // our html markup goes here
+    htmlMarkup,
+    `</svg:foreignObject>`,
+    `</svg:svg>`,
+  ].join(``);
+
+  return svgMarkup;
+}
+
+// ---------------- component ----------------
+
 /**
  * Renders all the children passed to it as an image on a canvas.
  *
@@ -35,26 +73,7 @@ export function RenderOnCanvas({
     if (canvas) {
       // getting the final html markup of all the children when rendered
       const htmlMarkup = render(children);
-
-      // -------- generating the svg markup from the given html markup --------
-      // **note**: the xml namespaces must **not** be switched for simplicity
-      // ie, the **main** xmlns should be xhtml and not svg
-      const namespaces = [
-        `xmlns="http://www.w3.org/1999/xhtml"`,
-        `xmlns:svg="http://www.w3.org/2000/svg"`,
-      ];
-
-      const svgMarkup = [
-        `<svg:svg ${namespaces.join(` `)} height="${height}" width="${width}">`,
-        // use `foreignObject` from the `svg` namespace
-        // it allows us to use html inside svg, which can then be rendered on a
-        // canvas
-        `<svg:foreignObject height="${height}" width="${width}">`,
-        // our html markup goes here
-        htmlMarkup,
-        `</svg:foreignObject>`,
-        `</svg:svg>`,
-      ].join(``);
+      const svgMarkup = useSVGForeignObject(htmlMarkup, [width, height]);
 
       // -------- creating an image from the svg markup --------
       let image = new Image();
@@ -106,6 +125,8 @@ export function RenderOnCanvas({
     </>
   );
 }
+
+// ----------------  styling  ----------------
 
 const Canvas = styled.canvas`
   background: white;
