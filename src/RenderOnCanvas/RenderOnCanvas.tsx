@@ -18,7 +18,7 @@ const defaultWidth = 150;
  * @param {[number, number]} dimensions [height, width]
  * @returns {string} SVG markup
  */
-function useSVGForeignObject(
+function useSvgForeignObject(
   htmlMarkup: string,
   [width, height]: [number, number] = [defaultWidth, defaultHeight],
 ): string {
@@ -99,7 +99,7 @@ export function RenderOnCanvas({
     if (canvas) {
       // getting the final html markup of all the children when rendered
       const htmlMarkup = render(children);
-      const svgMarkup = useSVGForeignObject(htmlMarkup, [width, height]);
+      const svgMarkup = useSvgForeignObject(htmlMarkup, [width, height]);
       const image = useSvgAsImageSrc(svgMarkup);
       // get canvas context
       const context = canvas.getContext('2d');
