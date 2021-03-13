@@ -168,7 +168,7 @@ export function RenderOnCanvas({
   return (
     <>
       {/* pass all the other props to the canvas */}
-      <Canvas ref={canvasRef} {...props} />
+      <Canvas ref={canvasRef} {...props} height={height} width={width} />
     </>
   );
 }
