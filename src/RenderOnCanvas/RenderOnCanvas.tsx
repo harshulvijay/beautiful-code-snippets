@@ -45,6 +45,26 @@ function useSVGForeignObject(
   return svgMarkup;
 }
 
+/**
+ * Creates an `HTMLImageElement` with `src` as an inline, Base64-encoded SVG
+ * string
+ *
+ * @param {string} svgMarkup the svg markup to use
+ * @returns {HTMLImageElement} the generated `HTMLImageElement` object
+ */
+function useSvgAsImageSrc(svgMarkup: string): HTMLImageElement {
+  // -------- creating an image from the svg markup --------
+  const image = new Image();
+  // encode the svg markup to base64
+  const base64SvgMarkup = btoa(svgMarkup);
+  // the image src
+  const imageSrc = `data:image/svg+xml;base64,${base64SvgMarkup}`;
+
+  image.src = imageSrc;
+
+  return image;
+}
+
 // ---------------- component ----------------
 
 /**
@@ -80,13 +100,7 @@ export function RenderOnCanvas({
       // getting the final html markup of all the children when rendered
       const htmlMarkup = render(children);
       const svgMarkup = useSVGForeignObject(htmlMarkup, [width, height]);
-
-      // -------- creating an image from the svg markup --------
-      let image = new Image();
-      // encode the svg markup to base64
-      const base64SvgMarkup = btoa(svgMarkup);
-      // the image src
-      const imageSrc = `data:image/svg+xml;base64,${base64SvgMarkup}`;
+      const image = useSvgAsImageSrc(svgMarkup);
       // get canvas context
       const context = canvas.getContext('2d');
 
@@ -114,8 +128,6 @@ export function RenderOnCanvas({
           context.drawImage(image, 0, 0);
         }
       };
-
-      image.src = imageSrc;
 
       return function cleanup() {
         // since the component has been unmounted/remounted, clear the canvas
