@@ -2,6 +2,7 @@ import {useEffect, useRef} from 'preact/hooks';
 import type {VNode} from 'preact';
 import render from 'preact-render-to-string';
 import styled from 'styled-components';
+import {Base64} from 'js-base64';
 
 // ---------------- constants ----------------
 
@@ -56,7 +57,8 @@ function useSvgAsImageSrc(svgMarkup: string): HTMLImageElement {
   // -------- creating an image from the svg markup --------
   const image = new Image();
   // encode the svg markup to base64
-  const base64SvgMarkup = btoa(svgMarkup);
+  // **note**: the `js-base64` library supports unicode and is hence used
+  const base64SvgMarkup = Base64.encode(svgMarkup);
   // the image src
   const imageSrc = `data:image/svg+xml;base64,${base64SvgMarkup}`;
 
@@ -78,7 +80,7 @@ interface CanvasOptions {
 
 /**
  * Paints the canvas with the given background color
- * 
+ *
  * @param {CanvasOptions} options canvas options
  * @param {string} color the color to use
  */
